@@ -1,90 +1,72 @@
-'use client'
+import Link from 'next/link'
+import { Activity, User } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { DarkmodeButton } from "./DarkmodeButton"
+import { auth } from '@/auth'
+import { logout } from '@/actions/auth'
 
-import * as React from "react"
-import Link from "next/link"
-import { Menu } from 'lucide-react'
-
-import { Button } from "@/components/ui/button"
-//import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-
-export function Navbar() {
-  const [isOpen, setIsOpen] = React.useState(false)
-
+export async function Navbar() {
+  let data = await auth()
   return (
-    <header className="border-b bg-slate-100 sticky top-0 z-50">
+    <header className="border-b bg-slate-100 dark:bg-slate-900 sticky top-0 z-50">
       <nav className="container mx-auto flex h-20 items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-1 text-2xl font-semibold">
           <span className="text-blue-600">Code</span>
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="h-6 w-6 text-[#ff8585]"
-          >
-            <path d="M2 12h6l4-8 4 16 4-8h4" />
-          </svg>
+          <Activity className="font-bold text-lg text-red-600" />
           <span className="text-blue-600">Blue</span>
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden items-center gap-8 md:flex">
-          <Link
-            href="/about"
-            className="text-sm text-gray-600 hover:text-blue-600"
-          >
-            about
-          </Link>
-          <Button
-            variant="ghost"
-            className="text-white bg-blue-600 hover:bg-blue-500"
-            asChild
-          >
-            <Link href="/login">login</Link>
-          </Button>
-        </div>
-
-        {/* Mobile Navigation */}
-        {/* <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon">
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle menu</span>
+        <div className="flex items-center gap-4">
+          {data ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <User className="h-6 w-6" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                {/* <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{data.name}</p>
+                    <p className="text-xs leading-none text-muted-foreground">{data.email}</p>
+                  </div>
+                </DropdownMenuLabel> */}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard">Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <form action={logout} className="w-full">
+                    <Button variant="ghost" className="w-full justify-start p-0">
+                      Log out
+                    </Button>
+                  </form>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+              asChild
+            >
+              <Link href="/login">Login</Link>
             </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-[300px]">
-            <div className="mt-8 flex flex-col gap-4">
-              <Link
-                href="/home"
-                className="text-sm text-gray-600 hover:text-blue-600"
-                onClick={() => setIsOpen(false)}
-              >
-                home
-              </Link>
-              <Link
-                href="/about"
-                className="text-sm text-gray-600 hover:text-blue-600"
-                onClick={() => setIsOpen(false)}
-              >
-                about
-              </Link>
-              <Button
-                variant="ghost"
-                className="justify-start text-blue-600 hover:bg-blue-50"
-                asChild
-              >
-                <Link href="/login" onClick={() => setIsOpen(false)}>
-                  login
-                </Link>
-              </Button>
-            </div>
-          </SheetContent>
-        </Sheet> */}
+          )}
+          <DarkmodeButton />
+        </div>
       </nav>
     </header>
   )
 }
-
-
 

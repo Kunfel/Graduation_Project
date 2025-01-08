@@ -2,18 +2,60 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { login, loginWithGoogle } from "@/actions/auth"
+import { auth } from "@/auth"
+import { redirect } from "next/navigation"
+import { useRouter } from "next/navigation"
+
+
+const formSchema = z.object({
+  email: z.string().email(),
+  password: z.string()
+})
 
 export default function LoginPage() {
+  // const router = useRouter()
+  // let session = await auth()
+  // if (session) { redirect('/dashboard') }
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  })
+
+  // 2. Define a submit handler.
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      await login(values)
+      //router.refresh()
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   return (
     <div className="grid min-h-screen grid-cols-2">
       {/* Left Section */}
-      <div className="flex flex-col items-center justify-center bg-[#ff8585] p-8 text-white">
+      <div className="flex flex-col items-center justify-center bg-[#ff8585] dark:opacity-60  p-8 text-white">
         <h1 className="mb-4 text-4xl font-bold tracking-wide">Welcome!</h1>
         <p className="text-lg">
           Don't have an account?{" "}
-          <Link href="/signup" className="underline hover:text-blue-100">
+          <Link href="/signup" className="underline hover:text-blue-600">
             Sign up
           </Link>
         </p>
@@ -26,47 +68,53 @@ export default function LoginPage() {
             <h2 className="text-3xl font-semibold text-blue-600">CodeBlue</h2>
           </div>
 
-          <form className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+
+              <FormField
+                control={form.control}
                 name="email"
-                type="email"
-                required
-                className="w-full rounded-md border border-blue-200 px-4 py-2"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="john.doe@example.com" className="w-full rounded-md border border-blue-200 px-4 py-2" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
+              <FormField
+                control={form.control}
                 name="password"
-                type="password"
-                required
-                className="w-full rounded-md border border-blue-200 px-4 py-2"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Insert password" className="w-full rounded-md border border-blue-200 px-4 py-2" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
+              <Button type="submit" className="w-full bg-blue-600 text-white hover:bg-blue-700">
+                Login
+              </Button>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="bg-white px-2 text-gray-500">or</span>
+                </div>
+              </div>
+            </form>
+          </Form>
+          <form action={loginWithGoogle}>
             <Button
               type="submit"
-              className="w-full bg-blue-100 text-blue-600 hover:bg-blue-200"
-            >
-              Login
-            </Button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-2 text-gray-500">or</span>
-              </div>
-            </div>
-
-            <Button
-              type="button"
               variant="outline"
               className="w-full border-blue-200"
             >
@@ -88,12 +136,11 @@ export default function LoginPage() {
                   fill="#EA4335"
                 />
               </svg>
-              Google
+              Continue with Google
             </Button>
           </form>
         </div>
       </div>
     </div>
-  )
+  );
 }
-

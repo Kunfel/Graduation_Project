@@ -1,4 +1,4 @@
-import ForumPost from '@/app/_components/ForumPost'
+import ForumPost from '@/app/dashboard/forum/_components/ForumPost'
 
 const dummyPosts = [
   { id: 1, title: 'Welcome to our forum!', author: 'Admin', content: 'Feel free to start discussions and ask questions.' },

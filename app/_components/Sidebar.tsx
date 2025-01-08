@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { ChevronLeft, ChevronRight, User, LayoutDashboard, Stethoscope, MessageSquare, Settings, LogOut, FileText, Lock, QrCode } from 'lucide-react'
+import { logout } from "@/actions/auth"
 
 const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -13,9 +14,9 @@ const navItems = [
   { name: "Forum", href: "/dashboard/forum", icon: MessageSquare },
   { name: "Documents", href: "/dashboard/documents", icon: FileText },
   { name: "QR Generator", href: "/dashboard/qr-generator", icon: QrCode },
-  { 
-    name: "Settings", 
-    href: "/dashboard/settings", 
+  {
+    name: "Settings",
+    href: "/dashboard/settings",
     icon: Settings,
     subItems: [
       { name: "Personal Details", href: "/dashboard/settings/personalDetails", icon: User },
@@ -30,13 +31,13 @@ export function Sidebar() {
 
   return (
     <div className={cn(
-      "relative flex h-screen flex-col border-r bg-white transition-all duration-300",
+      "relative flex h-screen flex-col border-r transition-all duration-300",
       isOpen ? "w-64" : "w-20"
     )}>
       <Button
         variant="ghost"
         size="icon"
-        className="absolute -right-3 top-4 z-40 rounded-full border bg-white"
+        className="absolute -right-3 top-4 z-40 rounded-full border"
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
@@ -75,16 +76,17 @@ export function Sidebar() {
         </nav>
       </div>
       <div className="p-4">
-        <Button
-          variant="outline"
-          className={cn(
-            "w-full bg-blue-600 text-white hover:bg-blue-700",
-            !isOpen && "px-0"
-          )}
-        >
-          <LogOut className={cn("h-5 w-5", isOpen && "mr-2")} />
-          {isOpen && "Logout"}
-        </Button>
+        <form action={logout}>
+          <Button
+            className={cn(
+              "w-full bg-blue-600 text-white hover:bg-blue-700",
+              !isOpen && "px-0"
+            )}
+          >
+            <LogOut className={cn("h-5 w-5", isOpen && "mr-2")} />
+            {isOpen && "Logout"}
+          </Button>
+        </form>
       </div>
     </div>
   )
