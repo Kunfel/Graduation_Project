@@ -19,7 +19,7 @@ export default function PasswordPage() {
       <main className="flex-1 p-6">
         <h1 className="mb-6 text-xl text-blue-600">Settings</h1>
 
-        <Card className=" max-w-2xl p-6">
+        <Card className="p-6">
           <h2 className="mb-6 text-lg font-semibold">Password Management</h2>
 
           <div className="space-y-6">

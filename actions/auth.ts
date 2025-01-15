@@ -3,8 +3,7 @@
 import { signIn, signOut } from "@/auth"
 
 export const login = async (credentials: any) => {
-    return await signIn("credentials", credentials)
-
+    return (await signIn("credentials", credentials))
 }
 
 export const loginWithGoogle = async () => {

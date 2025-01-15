@@ -16,10 +16,6 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { login, loginWithGoogle } from "@/actions/auth"
-import { auth } from "@/auth"
-import { redirect } from "next/navigation"
-import { useRouter } from "next/navigation"
-
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -27,9 +23,6 @@ const formSchema = z.object({
 })
 
 export default function LoginPage() {
-  // const router = useRouter()
-  // let session = await auth()
-  // if (session) { redirect('/dashboard') }
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -42,7 +35,6 @@ export default function LoginPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       await login(values)
-      //router.refresh()
     } catch (error) {
       console.error(error)
     }
@@ -98,7 +90,7 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-
+              <p>forgot password? <Link href="" className="underline hover:text-blue-600">click here</Link></p>
               <Button type="submit" className="w-full bg-blue-600 text-white hover:bg-blue-700">
                 Login
               </Button>

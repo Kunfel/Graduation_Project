@@ -10,17 +10,17 @@ import { logout } from "@/actions/auth"
 
 const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Medical", href: "/dashboard/medical", icon: Stethoscope },
+  //{ name: "Medical", href: "/dashboard/medical", icon: Stethoscope },
   { name: "Forum", href: "/dashboard/forum", icon: MessageSquare },
   { name: "Documents", href: "/dashboard/documents", icon: FileText },
   { name: "QR Generator", href: "/dashboard/qr-generator", icon: QrCode },
   {
     name: "Settings",
-    href: "/dashboard/settings",
+    href: "/dashboard/settings/edit-profile",
     icon: Settings,
     subItems: [
-      { name: "Personal Details", href: "/dashboard/settings/personalDetails", icon: User },
-      { name: "Password", href: "/dashboard/settings/password", icon: Lock },
+      { name: "Personal Details", href: "/dashboard/settings/edit-profile", icon: User },
+      { name: "Password", href: "/dashboard/settings/change-password", icon: Lock },
     ]
   },
 ]
@@ -37,7 +37,7 @@ export function Sidebar() {
       <Button
         variant="ghost"
         size="icon"
-        className="absolute -right-3 top-4 z-40 rounded-full border"
+        className="absolute bg-white -right-3 top-4 z-40 rounded-full border"
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}

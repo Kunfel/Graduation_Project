@@ -12,42 +12,75 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 password: {},
             },
             authorize: async (credentials) => {
-                let user: any = {
-                    id: "jksehdfhisd23",
-                    email: credentials.email,
+                let response = await fetch("http://localhost:5000/auth/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(credentials),
+                });
+                let token = await response.text();
+                try {
+                    let user: any = {
+                        email: credentials?.email,
+                        token,
+                    };
+                    // return user object with their profile data
+                    return user
+                } catch (error) {
+                    throw new Error("Invalid credentials.");
                 }
-
-                if (!user) {
-                    // No user found, so this is their first attempt to login
-                    // Optionally, this is also the place you could do a user registration
-                    throw new Error("Invalid credentials.")
-                }
-
-                // return user object with their profile data
-                return user
             },
         }),
-        Google
+        Google({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            async profile(profile, tokens) {
+                let response = await fetch("http://localhost:5000/auth/loginWithGoogle", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        accessToken: tokens?.access_token,
+                    }),
+                });
+                let token = await response.text();
+                let user: any = {
+                    email: profile?.email,
+                    token,
+                };
+                return user;
+            }
+        }),
     ],
     callbacks: {
-        async signIn({ user, account, profile, email, credentials }) {
-            let domain = user?.email?.split("@")[1]
-            if (domain === "gmail.com") return true
-            return false
+        authorized({ auth, request: { nextUrl } }) {
+            const isLoggedIn = !!auth?.user
+            const isOnDashboard = nextUrl.pathname.startsWith('/dashboard')
+            if (isOnDashboard) {
+                if (isLoggedIn) return true
+                return false // Redirect unauthenticated users to login page
+            } else if (isLoggedIn) {
+                return Response.redirect(new URL('/dashboard', nextUrl))
+            }
+            return true
         },
-        async jwt({ token, user, account, profile, isNewUser }) {
-            return {
-                ...token,
-                id: "11",
-                accessToken: "passkey",
-            };
+
+        async jwt({ token, user }: any) {
+            if (user)
+                return {
+                    ...token,
+                    accessToken: user.token,
+                };
+            else return token;
         },
-        async session({ session, token, user }) {
+        async session({ session, token }) {
             return {
                 ...session,
-                id: token.id,
                 token: token.accessToken,
             }
         },
     },
 })
+

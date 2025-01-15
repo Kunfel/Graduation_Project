@@ -1,16 +1,14 @@
 import React from "react";
 import { Navbar } from "../_components/Navbar";
 import { Sidebar } from "../_components/Sidebar";
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { guardRoute } from "@/lib/guard";
 
 export default async function DashboardLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    let data = await auth()
-    if (!data) redirect('/')
+    await guardRoute()
     return (
         <>
             <div className="">
