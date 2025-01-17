@@ -1,6 +1,6 @@
-"use client"
+'use client';
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm, FormProvider } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -11,12 +11,15 @@ import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/use-toast"
 import EmergencyContact from "./emergencyContact/page"
 import MedicalCard from "./medicalCard/page"
+import { fetchProfile, updateProfile, formatProfileData } from "@/actions/profile"
+import { useSession } from "next-auth/react"
+import { redirect } from "next/navigation"
 
 // Profile Schema
 const profileSchema = z.object({
     fullName: z.string().min(2, "Name must be at least 2 characters"),
     dateOfBirth: z.string(),
-    insuranceName: z.string().min(2, "Insurance name is required"),
+    insuranceNumber: z.string().min(2, "Insurance number is required"),
     address: z.object({
         street: z.string().min(2, "Street address is required"),
         place: z.string().min(2, "City is required"),
@@ -26,6 +29,11 @@ const profileSchema = z.object({
     allergies: z.array(z.string()).optional(),
     medications: z.array(z.string()).optional(),
     diseases: z.string().optional(),
+    emergencyContacts: z.array(z.object({
+        name: z.string(),
+        relationship: z.string(),
+        phone: z.string(),
+    })).default([])
 })
 
 type ProfileFormData = z.infer<typeof profileSchema>
@@ -42,41 +50,83 @@ function Avatar({ seed }: { seed: string }) {
 }
 
 export default function PersonalDetails() {
+    const { data: session, status } = useSession({
+        required: true,
+        onUnauthenticated() {
+            redirect('/login')
+        },
+    })
+
     const [isLoading, setIsLoading] = useState(false)
     const { toast } = useToast()
-
     const methods = useForm<ProfileFormData>({
         resolver: zodResolver(profileSchema),
+        defaultValues: async () => {
+            if (!session) return {
+                fullName: '',
+                dateOfBirth: '',
+                insuranceNumber: '',
+                address: {
+                    street: '',
+                    place: '',
+                    zipcode: ''
+                },
+                emergencyContacts: [],
+                bloodType: undefined,
+                allergies: undefined,
+                medications: undefined,
+                diseases: undefined
+            }
+            try {
+                const profile = await fetchProfile()
+                return formatProfileData(profile);
+            } catch (error) {
+                console.error('Error loading profile:', error)
+                toast({
+                    title: "Error",
+                    description: "Failed to load profile data",
+                    variant: "destructive",
+                })
+                return {
+                    fullName: '',
+                    dateOfBirth: '',
+                    insuranceNumber: '',
+                    address: {
+                        street: '',
+                        place: '',
+                        zipcode: ''
+                    },
+                    emergencyContacts: [],
+                    bloodType: undefined,
+                    allergies: undefined,
+                    medications: undefined,
+                    diseases: undefined
+                }
+            }
+        },
     })
 
     const onSubmit = async (data: ProfileFormData) => {
+        setIsLoading(true);
         try {
-            setIsLoading(true)
-            const response = await fetch("/api/profile", {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-            })
-
-            if (!response.ok) {
-                throw new Error("Failed to update profile")
-            }
-
+            await updateProfile(data);
             toast({
                 title: "Success",
                 description: "Profile updated successfully",
-            })
-        } catch (error) {
+            });
+        } catch (error: any) {
             toast({
                 title: "Error",
-                description: "Failed to update profile. Please try again.",
+                description: error.message || "Failed to update profile",
                 variant: "destructive",
-            })
+            });
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
+    };
+
+    if (status === "loading") {
+        return <div className="flex justify-center items-center h-screen">Loading...</div>
     }
 
     return (
@@ -85,7 +135,7 @@ export default function PersonalDetails() {
                 <h1 className="mb-6 text-xl text-blue-600">Settings</h1>
                 <Card className="p-6">
                     <FormProvider {...methods}>
-                        <form onSubmit={methods.handleSubmit(onSubmit)}>
+                        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-8">
                             <h2 className="mb-6 text-lg font-semibold">Personal Details</h2>
                             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 {/* Left Column - Personal Details */}
@@ -121,14 +171,14 @@ export default function PersonalDetails() {
 
                                     <div className="space-y-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="insuranceName">Insurance Name</Label>
+                                            <Label htmlFor="insuranceNumber">Insurance Number</Label>
                                             <Input
-                                                {...methods.register("insuranceName")}
-                                                placeholder="Insurance Provider"
+                                                {...methods.register("insuranceNumber")}
+                                                placeholder="Insurance Number"
                                                 className="border-blue-100"
                                             />
-                                            {methods.formState.errors.insuranceName && (
-                                                <p className="text-sm text-red-500">{methods.formState.errors.insuranceName.message}</p>
+                                            {methods.formState.errors.insuranceNumber && (
+                                                <p className="text-sm text-red-500">{methods.formState.errors.insuranceNumber.message}</p>
                                             )}
                                         </div>
 
@@ -182,18 +232,24 @@ export default function PersonalDetails() {
                             <div className="mt-6 flex justify-end gap-3">
                                 <Button
                                     type="button"
-                                    variant="outline"
-                                    className="bg-red-600 text-white hover:bg-red-600 px-4"
+                                    className="bg-red-600 text-white hover:bg-red-800 px-4"
                                     onClick={() => methods.reset()}
                                 >
                                     Cancel
                                 </Button>
                                 <Button
                                     type="submit"
-                                    className="bg-blue-600 text-white hover:bg-blue-700"
                                     disabled={isLoading}
+                                    className="bg-blue-600 text-white hover:bg-blue-800 px-4"
                                 >
-                                    {isLoading ? "Saving..." : "Save Changes"}
+                                    {isLoading ? (
+                                        <>
+                                            <span className="loading loading-spinner"></span>
+                                            Updating...
+                                        </>
+                                    ) : (
+                                        "Update Profile"
+                                    )}
                                 </Button>
                             </div>
                         </form>

@@ -17,21 +17,23 @@ export async function Navbar() {
   let data = await auth()
   return (
     <header className="border-b bg-slate-100 dark:bg-slate-900 sticky top-0 z-50">
-      <nav className="container mx-auto flex h-20 items-center justify-between px-4">
+      <nav className="w-full flex h-20 items-center justify-between px-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-1 text-2xl font-semibold">
-          <span className="text-blue-600">Code</span>
-          <Activity className="font-bold text-lg text-red-600" />
-          <span className="text-blue-600">Blue</span>
-        </Link>
+        <div className="flex-shrink-0">
+          <Link href="/" className="flex items-center px-2 gap-1 text-3xl font-semibold">
+            <span className="text-blue-600">Code</span>
+            <Activity className="font-bold text-lg text-red-600" />
+            <span className="text-blue-600">Blue</span>
+          </Link>
+        </div>
 
         {/* Desktop Navigation */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 ml-auto px-6">
           {data ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <User className="h-6 w-6" />
+                  <User className="h-6 w-6 " />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>

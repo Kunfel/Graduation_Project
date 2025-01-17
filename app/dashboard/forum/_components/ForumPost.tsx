@@ -1,15 +1,25 @@
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+
 interface ForumPostProps {
-  title: string
-  author: string
-  content: string
+    title: string
+    author: string
+    content: string
 }
 
 export default function ForumPost({ title, author, content }: ForumPostProps) {
-  return (
-    <div className="dark:bg-gray-900 p-4 rounded shadow">
-      <h2 className="text-xl font-semibold mb-2">{title}</h2>
-      <p className="text-sm text-gray-600 mb-2">Posted by: {author}</p>
-      <p>{content}</p>
-    </div>
-  )
+    return (
+        <Card className="w-full">
+            <CardHeader>
+                <div className="flex items-center space-x-4">
+                    <div>
+                        <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+                        <p className="text-sm text-muted-foreground">Posted by {author}</p>
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <p className="text-sm">{content}</p>
+            </CardContent>
+        </Card>
+    )
 }

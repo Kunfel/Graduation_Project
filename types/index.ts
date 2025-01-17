@@ -21,7 +21,7 @@ export interface EmergencyInfo {
 export interface EmergencyContact {
     name: string;
     relationship: string;
-    phoneNumber: string;
+    phone: string;
 }
 
 // Medical Document Types

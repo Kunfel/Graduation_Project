@@ -1,121 +1,138 @@
-"use client"
+'use client';
 
-import React from "react"
-import { useFieldArray, useFormContext } from "react-hook-form"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { PlusCircle, Trash2 } from "lucide-react"
+import { useState } from 'react';
+import { useFormContext } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/components/ui/use-toast';
+import { addEmergencyContact, deleteEmergencyContact } from '@/actions/profile';
+import { EmergencyContact } from '@/actions/profile';
 
-type EmergencyContactForm = {
-    emergencyContacts: {
-        name: string;
-        relationship: string;
-        phone: string;
-    }[];
-};
+export default function EmergencyContactForm() {
+    const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(false);
+    const { watch, setValue } = useFormContext();
+    const emergencyContacts = watch('emergencyContacts') || [];
+    const [newContact, setNewContact] = useState<EmergencyContact>({
+        name: '',
+        relationship: '',
+        phone: '',
+    });
 
-export default function EmergencyContact() {
-    const {
-        control,
-        register,
-        formState: { errors },
-    } = useFormContext<EmergencyContactForm>()
+    const handleAddContact = async () => {
+        if (!newContact.name || !newContact.relationship || !newContact.phone) {
+            toast({
+                title: 'Error',
+                description: 'Please fill in all fields',
+                variant: 'destructive',
+            });
+            return;
+        }
 
-    const { fields, append, remove } = useFieldArray({
-        control,
-        name: "emergencyContacts",
-    })
+        setIsLoading(true);
+        try {
+            const updatedProfile = await addEmergencyContact(newContact);
+            setValue('emergencyContacts', updatedProfile.emergencyContacts);
+            setNewContact({ name: '', relationship: '', phone: '' });
+            toast({
+                title: 'Success',
+                description: 'Emergency contact added successfully',
+            });
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: 'Failed to add emergency contact',
+                variant: 'destructive',
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-    const addContact = () => {
-        append({
-            name: "",
-            relationship: "",
-            phone: "",
-        })
-    }
+    const handleDeleteContact = async (index: number) => {
+        setIsLoading(true);
+        try {
+            const updatedProfile = await deleteEmergencyContact(index);
+            setValue('emergencyContacts', updatedProfile.emergencyContacts);
+            toast({
+                title: 'Success',
+                description: 'Emergency contact deleted successfully',
+            });
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: 'Failed to delete emergency contact',
+                variant: 'destructive',
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-gray-500">Emergency Contacts</h3>
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addContact}
-                    className="flex items-center gap-2"
-                >
-                    <PlusCircle className="h-4 w-4" />
-                    Add Contact
-                </Button>
-            </div>
+            <h2 className="text-lg font-medium">Emergency Contacts</h2>
 
-            {fields.map((field, index) => (
-                <div key={field.id} className="space-y-4 rounded-lg border p-4">
-                    <div className="flex justify-between">
-                        <h4 className="text-sm font-medium">Contact {index + 1}</h4>
+            {/* Existing Contacts */}
+            <div className="space-y-4">
+                {emergencyContacts.map((contact: EmergencyContact, index: number) => (
+                    <div key={index} className="flex items-center space-x-4 p-4 border rounded-lg">
+                        <div className="flex-1">
+                            <p className="font-medium">{contact.name}</p>
+                            <p className="text-sm text-gray-500">{contact.relationship}</p>
+                            <p className="text-sm">{contact.phone}</p>
+                        </div>
                         <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => remove(index)}
-                            className="text-red-500 hover:text-red-700"
+                            onClick={() => handleDeleteContact(index)}
+                            variant="destructive"
+                            disabled={isLoading}
                         >
-                            <Trash2 className="h-4 w-4" />
+                            Delete
                         </Button>
                     </div>
+                ))}
+            </div>
 
-                    <div className="space-y-2">
-                        <Label>Name</Label>
+            {/* Add New Contact Form */}
+            <div className="space-y-4 p-4 border rounded-lg">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div>
+                        <Label htmlFor="name">Name</Label>
                         <Input
-                            {...register(`emergencyContacts.${index}.name`)}
-                            placeholder="Contact Name"
-                            className="border-blue-100"
+                            id="name"
+                            value={newContact.name}
+                            onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
+                            placeholder="Full Name"
                         />
-                        {errors.emergencyContacts?.[index]?.name && (
-                            <p className="text-sm text-red-500">
-                                {errors.emergencyContacts?.[index]?.name?.message}
-                            </p>
-                        )}
                     </div>
-
-                    <div className="space-y-2">
-                        <Label>Relationship</Label>
+                    <div>
+                        <Label htmlFor="relationship">Relationship</Label>
                         <Input
-                            {...register(`emergencyContacts.${index}.relationship`)}
-                            placeholder="e.g., Parent, Spouse, Sibling"
-                            className="border-blue-100"
+                            id="relationship"
+                            value={newContact.relationship}
+                            onChange={(e) => setNewContact({ ...newContact, relationship: e.target.value })}
+                            placeholder="e.g. Parent, Spouse"
                         />
-                        {errors.emergencyContacts?.[index]?.relationship && (
-                            <p className="text-sm text-red-500">
-                                {errors.emergencyContacts?.[index]?.relationship?.message}
-                            </p>
-                        )}
                     </div>
-
-                    <div className="space-y-2">
-                        <Label>Phone Number</Label>
+                    <div>
+                        <Label htmlFor="phone">Phone Number</Label>
                         <Input
-                            {...register(`emergencyContacts.${index}.phone`)}
-                            placeholder="Phone Number"
-                            type="tel"
-                            className="border-blue-100"
+                            id="phone"
+                            value={newContact.phone}
+                            onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
+                            placeholder="+1234567890"
                         />
-                        {errors.emergencyContacts?.[index]?.phone && (
-                            <p className="text-sm text-red-500">
-                                {errors.emergencyContacts?.[index]?.phone?.message}
-                            </p>
-                        )}
                     </div>
                 </div>
-            ))}
-
-            {fields.length === 0 && (
-                <div className="flex h-32 items-center justify-center rounded-lg border-2 border-dashed">
-                    <p className="text-sm text-gray-500">No emergency contacts added</p>
-                </div>
-            )}
+                <Button
+                    onClick={handleAddContact}
+                    className="w-full md:w-auto"
+                    disabled={isLoading}
+                >
+                    {isLoading ? 'Adding...' : 'Add Contact'}
+                </Button>
+            </div>
         </div>
-    )
+    );
 }

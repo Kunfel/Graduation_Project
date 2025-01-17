@@ -8,14 +8,16 @@ import { useForm } from "react-hook-form"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { login, loginWithGoogle } from "@/actions/auth"
+import { loginWithGoogle, signup } from "@/actions/auth"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { useToast } from "@/components/ui/use-toast"
 
 const formSchema = z.object({
   fullname: z.string().min(2, "Fullname must be at least 2 characters"),
@@ -38,8 +40,28 @@ export default function SignupPage() {
     },
   })
 
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const { toast } = useToast()
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await login(values)
+    try {
+      setIsLoading(true)
+      await signup(values)
+      toast({
+        title: "Success",
+        description: "Account created successfully!",
+      })
+      router.push('/dashboard')
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Something went wrong",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (

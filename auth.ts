@@ -78,9 +78,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         async session({ session, token }) {
             return {
                 ...session,
-                token: token.accessToken,
+                token: JSON.parse(token.accessToken as string).access_token,
             }
         },
     },
 })
-
